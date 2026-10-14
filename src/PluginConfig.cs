@@ -23,8 +23,8 @@ namespace ReincarnationDisplay
         {
             ShowPanel = config.Bind("Panel", "ShowPanel", true,
                 "Show the panel above the N'tormat icon while standing in a valid sacrifice zone.");
-            PanelOffsetY = config.Bind("Panel", "PanelOffsetY", 8f,
-                "Vertical gap, in UI pixels, between the N'tormat icon and the panel.");
+            PanelOffsetY = config.Bind("Panel", "PanelOffsetY", -6f,
+                "Vertical gap, in UI pixels, between the panel and whatever sits above the N'tormat icon (such as the page selector).");
             PanelScale = config.Bind("Panel", "PanelScale", 1f,
                 "Scale multiplier for the panel.");
 

@@ -20,7 +20,7 @@ Edit `BepInEx/config/sevenstack.ReincarnationDisplay.cfg`, or use the in-game se
 | Setting | Default | Description |
 |---|---|---|
 | `ShowPanel` | true | Show the in-zone panel. |
-| `PanelOffsetY` / `PanelScale` | 8 / 1 | Panel position and size. |
+| `PanelOffsetY` / `PanelScale` | -6 / 1 | Gap above the page selector, and panel size. |
 | `ShowWorldRings` | true | Draw zone rings in the world. |
 | `RingMaxDistance` | 300 | Hide rings further than this, in meters. |
 | `StageStartWindowSeconds` | 30 | Fallback window length, used only if the zone has no timer of its own (normally it does). |
