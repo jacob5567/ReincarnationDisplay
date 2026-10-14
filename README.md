@@ -6,7 +6,7 @@ While you hold an unused Reincarnation page:
 
 - **World rings** mark the edge of every sacrifice zone that is currently valid, such as the teleporter's ritual zone, drawn at the zone's real radius and following the terrain.
 - **A panel above the N'tormat icon** appears only while you stand inside a valid zone. It shows:
-  - where a sacrifice would send the team (a specific stage, the possible stages for a random reroll, or the Veil of Memory)
+  - what a sacrifice would do: send the team to a named stage, continue to the next stage, reroll the current stage, or open the Veil of Memory
   - whether the stage count stays the same
   - a countdown for the 30-second stage-start reroll window
 
@@ -28,8 +28,8 @@ Edit `BepInEx/config/sevenstack.ReincarnationDisplay.cfg`, or use the in-game se
 
 ## Notes
 
-- On a client, a zone that leads to "the next stage" can only say *Next stage (stage N)*. The game doesn't send the chosen stage to clients; the host sees the stage name.
-- Random destinations (the stage-start reroll, scene collections) list every possible stage. The game picks one only when the ritual fires.
+- The panel names a stage only when the destination is guaranteed. When the game picks it, for example after a soul-binding trial or a Winnowing trial, the panel just says *Continues to the next stage*, so it never reveals anything you wouldn't otherwise know.
+- The stage-start reroll shows *Reroll stage N*.
 
 ## Building
 

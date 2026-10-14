@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Text;
 using RoR2;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -20,7 +19,6 @@ namespace ReincarnationDisplay
         private static Run rerollCandidatesRun;
 
         private static readonly List<SceneDef> sceneBuffer = new List<SceneDef>();
-        private static readonly StringBuilder textBuilder = new StringBuilder();
 
         public static bool IsPageUsable(CharacterBody body)
         {
@@ -172,7 +170,10 @@ namespace ReincarnationDisplay
             return prefab && zone.gameObject.name.StartsWith(prefab.name);
         }
 
-        public static string DescribeDestination(CursedBookSacrificeZone zone, out bool keepsStageCount)
+        // One line saying what a sacrifice in this zone does, e.g. "Reroll stage 3" or "Destination: Sulfur Pools".
+        // Only guaranteed destinations are named. When the game picks the stage (the run's next stage, or a random
+        // entry from a collection), the player wouldn't otherwise know it, so the line doesn't reveal it.
+        public static string DescribeOutcome(CursedBookSacrificeZone zone, out bool keepsStageCount)
         {
             keepsStageCount = zone.ShouldPreventStageCounterIncrement;
 
@@ -182,22 +183,26 @@ namespace ReincarnationDisplay
                 return "Opens the Veil of Memory";
             }
 
-            Run run = Run.instance;
             if (zone.useRerollSceneInstead)
             {
-                return "Random stage " + (run.stageClearCount + 1) + ": " + JoinSceneNames(GetRerollCandidates());
+                // A reroll never advances the stage count, so the note would only repeat the line.
+                keepsStageCount = false;
+                return "Reroll stage " + (Run.instance.stageClearCount + 1);
             }
             if (zone.useNextSceneInstead)
             {
-                SceneDef next = NetworkServer.active ? run.nextStageScene : null;
-                return next ? SceneName(next) : "Next stage (stage " + (run.stageClearCount + 2) + ")";
+                return "Continues to the next stage";
             }
             if (!zone.useExplicitSceneInstead)
             {
                 GetCollectionCandidates(zone, sceneBuffer);
-                return sceneBuffer.Count == 1 ? SceneName(sceneBuffer[0]) : "One of: " + JoinSceneNames(sceneBuffer);
+                if (sceneBuffer.Count == 1)
+                {
+                    return "Destination: " + SceneName(sceneBuffer[0]);
+                }
+                return zone.sceneTierCollection ? "Continues to the next stage" : "Continues to a random stage";
             }
-            return zone.explicitScene ? SceneName(zone.explicitScene) : "Unknown destination";
+            return zone.explicitScene ? "Destination: " + SceneName(zone.explicitScene) : "Unknown destination";
         }
 
         // Scenes with the current scene's stage order, other than the current scene (GetNextScene's reroll filter).
@@ -268,24 +273,6 @@ namespace ReincarnationDisplay
         private static bool CanPickStage(SceneDef def)
         {
             return !def.requiredExpansion || Run.instance.IsExpansionEnabled(def.requiredExpansion);
-        }
-
-        private static string JoinSceneNames(List<SceneDef> scenes)
-        {
-            if (scenes.Count == 0)
-            {
-                return "none available";
-            }
-            textBuilder.Clear();
-            for (int i = 0; i < scenes.Count; i++)
-            {
-                if (i > 0)
-                {
-                    textBuilder.Append(" / ");
-                }
-                textBuilder.Append(SceneName(scenes[i]));
-            }
-            return textBuilder.ToString();
         }
 
         private static string SceneName(SceneDef def)

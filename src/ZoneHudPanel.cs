@@ -24,6 +24,8 @@ namespace ReincarnationDisplay
 
         private RectTransform rectTransform;
         private RectTransform canvasRectTransform;
+        private KeyItemIcon icon;
+        private RectTransform iconRectTransform;
         private CanvasGroup canvasGroup;
         private TextMeshProUGUI label;
         private readonly Vector3[] corners = new Vector3[4];
@@ -32,7 +34,7 @@ namespace ReincarnationDisplay
         private bool visible;
         private CursedBookSacrificeZone describedZone;
         private float destinationAge;
-        private string destination;
+        private string outcome;
         private bool keepsStageCount;
         private int shownWindowTenths = int.MinValue;
 
@@ -82,6 +84,8 @@ namespace ReincarnationDisplay
             panel.rectTransform = rect;
             panel.canvasGroup = group;
             panel.label = text;
+            panel.icon = icon;
+            panel.iconRectTransform = (RectTransform)icon.transform;
             Canvas canvas = icon.GetComponentInParent<Canvas>();
             panel.canvasRectTransform = canvas ? (RectTransform)canvas.rootCanvas.transform : null;
             return panel;
@@ -101,7 +105,7 @@ namespace ReincarnationDisplay
             {
                 describedZone = zone.Zone;
                 destinationAge = 0f;
-                destination = ZoneScanner.DescribeDestination(zone.Zone, out keepsStageCount);
+                outcome = ZoneScanner.DescribeOutcome(zone.Zone, out keepsStageCount);
                 shownWindowTenths = int.MinValue;
             }
 
@@ -115,7 +119,7 @@ namespace ReincarnationDisplay
 
         private string BuildText(int windowTenths)
         {
-            string text = "<color=" + HeaderColor + "><b>REINCARNATION READY</b></color>\nDestination: <b>" + destination + "</b>";
+            string text = "<color=" + HeaderColor + "><b>REINCARNATION READY</b></color>\n<b>" + outcome + "</b>";
             if (keepsStageCount)
             {
                 text += "\n<size=85%><color=" + NoteColor + ">Stage count unchanged</color></size>";
@@ -133,11 +137,59 @@ namespace ReincarnationDisplay
         {
             PluginConfig settings = ReincarnationDisplayPlugin.Settings;
             rectTransform.localScale = Vector3.one * settings.PanelScale.Value;
-            rectTransform.anchoredPosition = new Vector2(0f, settings.PanelOffsetY.Value);
-            KeepOnScreen();
-
             float target = visible ? 1f : 0f;
+            if (visible || canvasGroup.alpha > 0f)
+            {
+                float clearance = GetContentTop() - iconRectTransform.rect.yMax;
+                rectTransform.anchoredPosition = new Vector2(0f, clearance + settings.PanelOffsetY.Value);
+                KeepOnScreen();
+            }
+
             canvasGroup.alpha = Mathf.MoveTowards(canvasGroup.alpha, target, Time.unscaledDeltaTime / FadeDuration);
+        }
+
+        // Highest point, in the icon's local space, of anything drawn on or above the icon, such as the scrollable
+        // page selector the N'tormat adds in extraDisplayHolder. The panel sits above it so nothing is covered.
+        private float GetContentTop()
+        {
+            float top = Mathf.Max(iconRectTransform.rect.yMax, MeasureTop(iconRectTransform));
+            Transform extraDisplay = icon ? icon.extraDisplayHolder : null;
+            if (extraDisplay && !extraDisplay.IsChildOf(iconRectTransform))
+            {
+                top = Mathf.Max(top, MeasureTop(extraDisplay));
+            }
+            return top;
+        }
+
+        // Only visible graphics count, so empty layout containers don't push the panel up. A masked rect stands in
+        // for its children, which are clipped to it (a scroll view's content can extend far past its viewport).
+        private float MeasureTop(Transform node)
+        {
+            float top = float.NegativeInfinity;
+            if (node == rectTransform || !node.gameObject.activeInHierarchy)
+            {
+                return top;
+            }
+            if (node is RectTransform rect)
+            {
+                bool masks = rect.GetComponent<RectMask2D>() || rect.GetComponent<Mask>();
+                Graphic graphic = rect.GetComponent<Graphic>();
+                if (masks || (graphic && graphic.enabled))
+                {
+                    rect.GetWorldCorners(corners);
+                    top = Mathf.Max(iconRectTransform.InverseTransformPoint(corners[1]).y,
+                        iconRectTransform.InverseTransformPoint(corners[2]).y);
+                }
+                if (masks)
+                {
+                    return top;
+                }
+            }
+            for (int i = 0; i < node.childCount; i++)
+            {
+                top = Mathf.Max(top, MeasureTop(node.GetChild(i)));
+            }
+            return top;
         }
 
         // The icon sits near a screen edge, so slide the panel sideways if it would hang off the canvas.

@@ -65,8 +65,8 @@ namespace ReincarnationDisplay
             builder.AppendLine($"  shape={DescribeShape(zone.zone)}");
             if (Run.instance)
             {
-                string destination = ZoneScanner.DescribeDestination(zone, out bool keepsStageCount);
-                builder.AppendLine($"  destination='{destination}' keepsStageCount={keepsStageCount}");
+                string outcome = ZoneScanner.DescribeOutcome(zone, out bool keepsStageCount);
+                builder.AppendLine($"  outcome='{outcome}' keepsStageCount={keepsStageCount}");
             }
             AppendComponents(builder, zone.gameObject);
             ReincarnationDisplayPlugin.Log.LogInfo(builder.ToString());
