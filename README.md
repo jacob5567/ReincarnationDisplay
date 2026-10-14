@@ -14,7 +14,7 @@ The mod never changes gameplay and never sends anything over the network. It wor
 
 ## Configuration
 
-Edit `BepInEx/config/jacob5567.ReincarnationDisplay.cfg`, or use the in-game settings menu if [Risk Of Options](https://thunderstore.io/package/Rune580/Risk_Of_Options/) is installed.
+Edit `BepInEx/config/sevenstack.ReincarnationDisplay.cfg`, or use the in-game settings menu if [Risk Of Options](https://thunderstore.io/package/Rune580/Risk_Of_Options/) is installed.
 
 | Setting | Default | Description |
 |---|---|---|

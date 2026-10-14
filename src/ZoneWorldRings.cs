@@ -44,20 +44,37 @@ namespace ReincarnationDisplay
 
         private void Awake()
         {
-            // Both shaders tint by vertex color, which is how ring colors are applied.
-            Shader shader = Shader.Find("Sprites/Default") ?? Shader.Find("UI/Default");
-            if (!shader)
+            Material template = GetDefaultSpriteMaterial();
+            if (!template)
             {
-                ReincarnationDisplayPlugin.Log.LogError("No usable shader found; world rings are disabled.");
-                enabled = false;
+                ReincarnationDisplayPlugin.Log.LogError("No usable line material found; world rings are disabled.");
                 return;
             }
-            material = new Material(shader);
+            material = new Material(template);
         }
 
         private void OnDestroy()
         {
-            Destroy(material);
+            if (material)
+            {
+                Destroy(material);
+            }
+        }
+
+        // RoR2BepInExPack reroutes Shader.Find through the game's shader table, which throws for built-in names like
+        // "Sprites/Default". A new SpriteRenderer is given Unity's built-in Sprites-Default material instead, which
+        // tints by vertex color, the way ring colors are applied.
+        private static Material GetDefaultSpriteMaterial()
+        {
+            GameObject probe = new GameObject("ReincarnationMaterialProbe");
+            try
+            {
+                return probe.AddComponent<SpriteRenderer>().sharedMaterial;
+            }
+            finally
+            {
+                DestroyImmediate(probe);
+            }
         }
 
         public void Clear()

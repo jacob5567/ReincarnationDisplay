@@ -8,7 +8,7 @@ namespace ReincarnationDisplay
     [BepInDependency(RiskOfOptionsCompat.GUID, BepInDependency.DependencyFlags.SoftDependency)]
     public class ReincarnationDisplayPlugin : BaseUnityPlugin
     {
-        public const string PluginGUID = "jacob5567.ReincarnationDisplay";
+        public const string PluginGUID = "sevenstack.ReincarnationDisplay";
         public const string PluginName = "ReincarnationDisplay";
         public const string PluginVersion = "0.1.0";
 
