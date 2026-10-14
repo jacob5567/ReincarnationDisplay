@@ -1,0 +1,46 @@
+using BepInEx.Configuration;
+using UnityEngine;
+
+namespace ReincarnationDisplay
+{
+    internal sealed class PluginConfig
+    {
+        public readonly ConfigEntry<bool> ShowPanel;
+        public readonly ConfigEntry<float> PanelOffsetY;
+        public readonly ConfigEntry<float> PanelScale;
+
+        public readonly ConfigEntry<bool> ShowWorldRings;
+        public readonly ConfigEntry<float> RingMaxDistance;
+
+        public readonly ConfigEntry<float> StageStartWindowSeconds;
+        public readonly ConfigEntry<bool> HideStageStartZoneAfterWindow;
+
+        public readonly ConfigEntry<bool> DebugLogging;
+        public readonly ConfigEntry<KeyboardShortcut> DumpZonesKey;
+
+        public PluginConfig(ConfigFile config)
+        {
+            ShowPanel = config.Bind("Panel", "ShowPanel", true,
+                "Show the panel above the N'tormat icon while standing in a valid sacrifice zone.");
+            PanelOffsetY = config.Bind("Panel", "PanelOffsetY", 8f,
+                "Vertical gap, in UI pixels, between the N'tormat icon and the panel.");
+            PanelScale = config.Bind("Panel", "PanelScale", 1f,
+                "Scale multiplier for the panel.");
+
+            ShowWorldRings = config.Bind("World", "ShowWorldRings", true,
+                "Draw rings on the ground marking the edge of each valid sacrifice zone.");
+            RingMaxDistance = config.Bind("World", "RingMaxDistance", 300f,
+                "Rings further than this many meters away are hidden.");
+
+            StageStartWindowSeconds = config.Bind("Timing", "StageStartWindowSeconds", 30f,
+                "Length of the stage-start window during which a sacrifice anywhere rerolls the stage.");
+            HideStageStartZoneAfterWindow = config.Bind("Timing", "HideStageStartZoneAfterWindow", true,
+                "Stop treating the stage-start zone as valid once the window has elapsed.");
+
+            DebugLogging = config.Bind("Debug", "DebugLogging", false,
+                "Log every sacrifice zone as it appears, and enable the zone dump key.");
+            DumpZonesKey = config.Bind("Debug", "DumpZonesKey", new KeyboardShortcut(KeyCode.F8),
+                "With DebugLogging on, press to log every sacrifice zone in the current stage.");
+        }
+    }
+}
