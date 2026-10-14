@@ -16,6 +16,7 @@ namespace ReincarnationDisplay
         public readonly ConfigEntry<bool> HideStageStartZoneAfterWindow;
 
         public readonly ConfigEntry<bool> DebugLogging;
+        public readonly ConfigEntry<bool> DebugAlwaysShow;
         public readonly ConfigEntry<KeyboardShortcut> DumpZonesKey;
 
         public PluginConfig(ConfigFile config)
@@ -39,6 +40,8 @@ namespace ReincarnationDisplay
 
             DebugLogging = config.Bind("Debug", "DebugLogging", false,
                 "Log every sacrifice zone as it appears, and enable the zone dump key.");
+            DebugAlwaysShow = config.Bind("Debug", "DebugAlwaysShow", false,
+                "Show the panel and zone rings even without a Reincarnation page, for testing.");
             DumpZonesKey = config.Bind("Debug", "DumpZonesKey", new KeyboardShortcut(KeyCode.F8),
                 "With DebugLogging on, press to log every sacrifice zone in the current stage.");
         }

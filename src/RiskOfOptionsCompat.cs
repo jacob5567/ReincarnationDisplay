@@ -34,6 +34,7 @@ namespace ReincarnationDisplay
             ModSettingsManager.AddOption(new CheckBoxOption(settings.HideStageStartZoneAfterWindow));
 
             ModSettingsManager.AddOption(new CheckBoxOption(settings.DebugLogging));
+            ModSettingsManager.AddOption(new CheckBoxOption(settings.DebugAlwaysShow));
         }
     }
 }

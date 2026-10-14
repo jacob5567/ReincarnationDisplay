@@ -37,7 +37,12 @@ namespace ReincarnationDisplay
 
             zones.Clear();
             int activeIndex = -1;
-            PageState pageState = ZoneScanner.GetPageState(body);
+            PageState actualPageState = ZoneScanner.GetPageState(body);
+            PageState pageState = actualPageState;
+            if (pageState == PageState.None && settings.DebugAlwaysShow.Value && body)
+            {
+                pageState = PageState.Usable;
+            }
             bool holdsPage = pageState != PageState.None;
             if (holdsPage)
             {
@@ -47,7 +52,7 @@ namespace ReincarnationDisplay
             if (settings.DebugLogging.Value)
             {
                 ZoneDebugDump.LogNewZones();
-                ReportBuffMismatch(body, pageState == PageState.Usable, activeIndex >= 0);
+                ReportBuffMismatch(body, actualPageState == PageState.Usable, activeIndex >= 0);
             }
 
             if (!panel && hud.keyItemIcon)

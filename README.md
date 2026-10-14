@@ -26,6 +26,7 @@ Edit `BepInEx/config/sevenstack.ReincarnationDisplay.cfg`, or use the in-game se
 | `StageStartWindowSeconds` | 30 | Fallback window length, used only if the zone has no timer of its own (normally it does). |
 | `HideStageStartZoneAfterWindow` | true | Stop showing the stage-start zone once the window ends. |
 | `DebugLogging` / `DumpZonesKey` | false / F8 | Log zone details, for troubleshooting. |
+| `DebugAlwaysShow` | false | Show the panel and rings even without a Reincarnation page, for testing. |
 
 ## Notes
 
