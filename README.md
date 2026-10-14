@@ -2,13 +2,14 @@
 
 A client-side Risk of Rain 2 mod for the Hallowed Concepts DLC. It shows where the **Reincarnation** N'tormat page actually works.
 
-While you hold an unused Reincarnation page:
+While you hold an unused Reincarnation page (including one that is currently disabled):
 
 - **World rings** mark the edge of every sacrifice zone that is currently valid, such as the teleporter's ritual zone, drawn at the zone's real radius and following the terrain.
 - **A panel above the N'tormat icon** appears only while you stand inside a valid zone. It shows:
-  - what a sacrifice would do: send the team to a named stage, continue to the next stage, reroll the current stage, or open the Veil of Memory
+  - what a sacrifice would do: send the team to a named stage, continue to the next stage, reroll the current stage, enter a random Winnowing trial, or open the Veil of Memory
   - whether the stage count stays the same
   - a countdown for the 30-second stage-start reroll window
+  - a red **REINCARNATION DISABLED** warning when your page is disabled, for example by Hex of Loss
 
 The mod never changes gameplay and never sends anything over the network. It works when you join a host who doesn't have it installed.
 
@@ -22,7 +23,7 @@ Edit `BepInEx/config/sevenstack.ReincarnationDisplay.cfg`, or use the in-game se
 | `PanelOffsetY` / `PanelScale` | 8 / 1 | Panel position and size. |
 | `ShowWorldRings` | true | Draw zone rings in the world. |
 | `RingMaxDistance` | 300 | Hide rings further than this, in meters. |
-| `StageStartWindowSeconds` | 30 | Length of the stage-start reroll window. |
+| `StageStartWindowSeconds` | 30 | Fallback window length, used only if the zone has no timer of its own (normally it does). |
 | `HideStageStartZoneAfterWindow` | true | Stop showing the stage-start zone once the window ends. |
 | `DebugLogging` / `DumpZonesKey` | false / F8 | Log zone details, for troubleshooting. |
 

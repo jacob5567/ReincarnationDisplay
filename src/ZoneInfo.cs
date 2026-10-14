@@ -3,6 +3,15 @@ using UnityEngine;
 
 namespace ReincarnationDisplay
 {
+    internal enum PageState
+    {
+        // No Reincarnation page in the inventory (consumed copies don't count).
+        None,
+        Usable,
+        // Held, but disabled, e.g. by Hex of Loss. Disabled items drop out of the effective item count.
+        Disabled,
+    }
+
     internal enum ZoneShape
     {
         Tube,

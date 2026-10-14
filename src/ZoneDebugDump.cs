@@ -11,6 +11,7 @@ namespace ReincarnationDisplay
     internal static class ZoneDebugDump
     {
         private static readonly HashSet<int> loggedZoneIds = new HashSet<int>();
+        private static readonly List<SceneDef> candidates = new List<SceneDef>();
 
         public static void LogNewZones()
         {
@@ -67,6 +68,16 @@ namespace ReincarnationDisplay
             {
                 string outcome = ZoneScanner.DescribeOutcome(zone, out bool keepsStageCount);
                 builder.AppendLine($"  outcome='{outcome}' keepsStageCount={keepsStageCount}");
+                if (!zone.useExplicitSceneInstead && !zone.useNextSceneInstead && !zone.useRerollSceneInstead)
+                {
+                    ZoneScanner.GetCollectionCandidates(zone, candidates);
+                    builder.Append("  candidates:");
+                    foreach (SceneDef candidate in candidates)
+                    {
+                        builder.Append($" {candidate.cachedName} ({ZoneScanner.SceneName(candidate)}, {candidate.sceneType})");
+                    }
+                    builder.AppendLine();
+                }
             }
             AppendComponents(builder, zone.gameObject);
             ReincarnationDisplayPlugin.Log.LogInfo(builder.ToString());

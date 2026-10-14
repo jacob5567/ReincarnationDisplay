@@ -17,6 +17,7 @@ namespace ReincarnationDisplay
 
         private static readonly Color BackgroundColor = new Color(0.07f, 0.03f, 0.1f, 0.85f);
         private const string HeaderColor = "#C38BFF";
+        private const string DisabledHeaderColor = "#FF5A5A";
         private const string NoteColor = "#A0A0A0";
         private const string WindowColor = "#E6D9FF";
         private const string WindowWarningColor = "#FFC24D";
@@ -37,6 +38,7 @@ namespace ReincarnationDisplay
         private string outcome;
         private bool keepsStageCount;
         private int shownWindowTenths = int.MinValue;
+        private string shownDisabledCause;
 
         public static ZoneHudPanel Create(KeyItemIcon icon)
         {
@@ -96,7 +98,8 @@ namespace ReincarnationDisplay
             visible = false;
         }
 
-        public void Show(ZoneInfo zone)
+        // disabledCause is null when the page is usable, otherwise why it isn't (e.g. "Disabled by Hex of Loss").
+        public void Show(ZoneInfo zone, string disabledCause)
         {
             visible = true;
 
@@ -110,16 +113,20 @@ namespace ReincarnationDisplay
             }
 
             int windowTenths = zone.IsStageStart ? Mathf.Max(0, Mathf.CeilToInt(zone.WindowRemaining * 10f)) : -1;
-            if (windowTenths != shownWindowTenths)
+            if (windowTenths != shownWindowTenths || disabledCause != shownDisabledCause)
             {
                 shownWindowTenths = windowTenths;
-                label.text = BuildText(windowTenths);
+                shownDisabledCause = disabledCause;
+                label.text = BuildText(windowTenths, disabledCause);
             }
         }
 
-        private string BuildText(int windowTenths)
+        private string BuildText(int windowTenths, string disabledCause)
         {
-            string text = "<color=" + HeaderColor + "><b>REINCARNATION READY</b></color>\n<b>" + outcome + "</b>";
+            string text = disabledCause == null
+                ? "<color=" + HeaderColor + "><b>REINCARNATION READY</b></color>"
+                : "<color=" + DisabledHeaderColor + "><b>REINCARNATION DISABLED</b></color>\n<color=" + DisabledHeaderColor + ">" + disabledCause + "</color>";
+            text += "\n<b>" + outcome + "</b>";
             if (keepsStageCount)
             {
                 text += "\n<size=85%><color=" + NoteColor + ">Stage count unchanged</color></size>";

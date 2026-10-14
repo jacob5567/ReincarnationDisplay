@@ -33,7 +33,7 @@ namespace ReincarnationDisplay
                 "Rings further than this many meters away are hidden.");
 
             StageStartWindowSeconds = config.Bind("Timing", "StageStartWindowSeconds", 30f,
-                "Length of the stage-start window during which a sacrifice anywhere rerolls the stage.");
+                "Fallback length of the stage-start reroll window, used only if the zone has no timer of its own.");
             HideStageStartZoneAfterWindow = config.Bind("Timing", "HideStageStartZoneAfterWindow", true,
                 "Stop treating the stage-start zone as valid once the window has elapsed.");
 

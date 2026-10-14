@@ -12,6 +12,8 @@ namespace ReincarnationDisplay
     {
         private const int ChampRushPageRequirement = 3;
         private const int ProvidencePageRequirement = 6;
+        // The stage-start zone is a plain SphereZone with a 65536 m radius rather than an inverted one.
+        private const float EverywhereRadius = 10000f;
 
         private static readonly List<SceneDef> rerollCandidates = new List<SceneDef>();
         private static SceneDef rerollCandidatesScene;
@@ -20,18 +22,35 @@ namespace ReincarnationDisplay
 
         private static readonly List<SceneDef> sceneBuffer = new List<SceneDef>();
 
-        public static bool IsPageUsable(CharacterBody body)
+        public static PageState GetPageState(CharacterBody body)
         {
-            if (!body || !Run.instance || !DLC4Content.Items.PageDie)
+            ItemDef page = DLC4Content.Items.PageDie;
+            if (!body || !Run.instance || !page)
             {
-                return false;
+                return PageState.None;
             }
             if (!body.healthComponent || !body.healthComponent.alive)
             {
-                return false;
+                return PageState.None;
             }
             Inventory inventory = body.inventory;
-            return inventory && inventory.GetItemCountEffective(DLC4Content.Items.PageDie) > 0;
+            if (!inventory || inventory.GetItemCountTotal(page) <= 0)
+            {
+                return PageState.None;
+            }
+            return inventory.GetItemCountEffective(page) > 0 ? PageState.Usable : PageState.Disabled;
+        }
+
+        // Why a held page is disabled, for the panel. Hex of Loss is the usual cause.
+        public static string DescribeDisabledCause(CharacterBody body)
+        {
+            ItemDef hex = DLC4Content.Items.RoamingItemDisable;
+            Inventory inventory = body ? body.inventory : null;
+            if (hex && inventory && inventory.GetItemCountTotal(hex) > 0)
+            {
+                return "Disabled by " + Language.GetString(hex.nameToken);
+            }
+            return "Page is disabled";
         }
 
         public static bool HasReadyBuff(CharacterBody body)
@@ -133,12 +152,12 @@ namespace ReincarnationDisplay
             switch (zone.zone)
             {
                 case VerticalTubeZone tube:
-                    info.Shape = ZoneShape.Tube;
+                    info.Shape = tube.radius >= EverywhereRadius ? ZoneShape.Everywhere : ZoneShape.Tube;
                     info.Center = tube.transform.position;
                     info.Radius = tube.radius;
                     break;
                 case SphereZone sphere:
-                    info.Shape = sphere.isInverted ? ZoneShape.Everywhere : ZoneShape.Sphere;
+                    info.Shape = sphere.isInverted || sphere.radius >= EverywhereRadius ? ZoneShape.Everywhere : ZoneShape.Sphere;
                     info.Center = sphere.transform.position;
                     info.Radius = sphere.radius;
                     break;
@@ -152,10 +171,22 @@ namespace ReincarnationDisplay
             info.IsStageStart = IsStageStartZone(zone);
             if (info.IsStageStart)
             {
-                float elapsed = Stage.instance ? Stage.instance.entryTime.timeSince : 0f;
-                info.WindowRemaining = ReincarnationDisplayPlugin.Settings.StageStartWindowSeconds.Value - elapsed;
+                info.WindowRemaining = GetWindowRemaining(zone);
             }
             return info;
+        }
+
+        // The stage-start zone carries an EntityLogic.Timer (30 s) that removes it when it fires. It counts up on
+        // game time and stops once fired, so it also pauses with the game. Without one, count from stage entry.
+        private static float GetWindowRemaining(CursedBookSacrificeZone zone)
+        {
+            RoR2.EntityLogic.Timer timer = zone.GetComponent<RoR2.EntityLogic.Timer>();
+            if (timer)
+            {
+                return timer.timerRunning ? timer.duration - timer.stopwatch : 0f;
+            }
+            float elapsed = Stage.instance ? Stage.instance.entryTime.timeSince : 0f;
+            return ReincarnationDisplayPlugin.Settings.StageStartWindowSeconds.Value - elapsed;
         }
 
         // The stage-start zone is the one DLC4SacrificeZoneSpawner spawns from reincarnateCard: a reroll zone.
@@ -200,7 +231,14 @@ namespace ReincarnationDisplay
                 {
                     return "Destination: " + SceneName(sceneBuffer[0]);
                 }
-                return zone.sceneTierCollection ? "Continues to the next stage" : "Continues to a random stage";
+                if (zone.sceneTierCollection)
+                {
+                    return "Continues to the next stage";
+                }
+                // Trial zones (e.g. Sunken Hamlet) pick a random Winnowing trial from DLC4TrialCollection; don't say which.
+                return zone.sceneCollection && zone.sceneCollection.name.Contains("Trial")
+                    ? "Enters a random Winnowing trial"
+                    : "Continues to a random stage";
             }
             return zone.explicitScene ? "Destination: " + SceneName(zone.explicitScene) : "Unknown destination";
         }
@@ -232,7 +270,7 @@ namespace ReincarnationDisplay
         }
 
         // The entries GetNextScene's weighted pick could land on, including the looped-variant swap.
-        private static void GetCollectionCandidates(CursedBookSacrificeZone zone, List<SceneDef> results)
+        internal static void GetCollectionCandidates(CursedBookSacrificeZone zone, List<SceneDef> results)
         {
             results.Clear();
             Run run = Run.instance;
@@ -275,7 +313,7 @@ namespace ReincarnationDisplay
             return !def.requiredExpansion || Run.instance.IsExpansionEnabled(def.requiredExpansion);
         }
 
-        private static string SceneName(SceneDef def)
+        internal static string SceneName(SceneDef def)
         {
             string name = Language.GetString(def.nameToken);
             return string.IsNullOrEmpty(name) || name == def.nameToken ? def.cachedName : name;

@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace ReincarnationDisplay
 {
-    // One per HUD. Each frame: is the page usable, which zones are valid, then drive the panel and rings.
+    // One per HUD. Each frame: is the page held (and usable), which zones are valid, then drive the panel and rings.
     internal sealed class ReincarnationDisplayController : MonoBehaviour
     {
         private readonly List<ZoneInfo> zones = new List<ZoneInfo>();
@@ -37,8 +37,9 @@ namespace ReincarnationDisplay
 
             zones.Clear();
             int activeIndex = -1;
-            bool usable = ZoneScanner.IsPageUsable(body);
-            if (usable)
+            PageState pageState = ZoneScanner.GetPageState(body);
+            bool holdsPage = pageState != PageState.None;
+            if (holdsPage)
             {
                 activeIndex = ZoneScanner.Scan(body, zones);
             }
@@ -46,7 +47,7 @@ namespace ReincarnationDisplay
             if (settings.DebugLogging.Value)
             {
                 ZoneDebugDump.LogNewZones();
-                ReportBuffMismatch(body, usable, activeIndex >= 0);
+                ReportBuffMismatch(body, pageState == PageState.Usable, activeIndex >= 0);
             }
 
             if (!panel && hud.keyItemIcon)
@@ -57,7 +58,8 @@ namespace ReincarnationDisplay
             {
                 if (settings.ShowPanel.Value && activeIndex >= 0)
                 {
-                    panel.Show(zones[activeIndex]);
+                    string disabledCause = pageState == PageState.Disabled ? ZoneScanner.DescribeDisabledCause(body) : null;
+                    panel.Show(zones[activeIndex], disabledCause);
                 }
                 else
                 {
@@ -70,7 +72,7 @@ namespace ReincarnationDisplay
             {
                 rings = ZoneWorldRings.Create();
             }
-            if (usable && settings.ShowWorldRings.Value)
+            if (holdsPage && settings.ShowWorldRings.Value)
             {
                 rings.UpdateRings(zones, body.corePosition, settings.RingMaxDistance.Value);
             }
