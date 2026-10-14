@@ -20,6 +20,7 @@ namespace ReincarnationDisplay
                 "Shows the Reincarnation page's sacrifice zones, where a sacrifice will send you, and the stage-start window.");
 
             ModSettingsManager.AddOption(new CheckBoxOption(settings.ShowPanel));
+            ModSettingsManager.AddOption(new CheckBoxOption(settings.ShowZoneIndicator));
             ModSettingsManager.AddOption(new StepSliderOption(settings.PanelOffsetY,
                 new StepSliderConfig { min = -50f, max = 200f, increment = 1f, FormatString = "{0:0}px" }));
             ModSettingsManager.AddOption(new StepSliderOption(settings.PanelScale,

@@ -6,9 +6,16 @@ using UnityEngine.UI;
 
 namespace ReincarnationDisplay
 {
-    // Small panel parented to the HUD's key item (N'tormat) icon, shown while standing in a valid zone.
+    // Small panel parented to the HUD's key item (N'tormat) icon. Standing in a valid zone shows what a sacrifice
+    // there does; otherwise a one-line hint can say the stage has a zone somewhere.
     internal sealed class ZoneHudPanel : MonoBehaviour
     {
+        private enum Mode
+        {
+            Zone,
+            Indicator,
+        }
+
         private const float PanelWidth = 260f;
         private const float FontSize = 15f;
         private const float FadeDuration = 0.15f;
@@ -28,11 +35,16 @@ namespace ReincarnationDisplay
         private KeyItemIcon icon;
         private RectTransform iconRectTransform;
         private CanvasGroup canvasGroup;
+        private ContentSizeFitter fitter;
         private TextMeshProUGUI label;
         private readonly Vector3[] corners = new Vector3[4];
         private readonly Vector3[] canvasCorners = new Vector3[4];
 
         private bool visible;
+        private Mode mode = Mode.Zone;
+        private bool textDirty = true;
+        private int shownIndicatorCount;
+        private bool shownIndicatorDisabled;
         private CursedBookSacrificeZone describedZone;
         private float destinationAge;
         private string outcome;
@@ -85,6 +97,7 @@ namespace ReincarnationDisplay
             ZoneHudPanel panel = root.AddComponent<ZoneHudPanel>();
             panel.rectTransform = rect;
             panel.canvasGroup = group;
+            panel.fitter = fitter;
             panel.label = text;
             panel.icon = icon;
             panel.iconRectTransform = (RectTransform)icon.transform;
@@ -102,6 +115,7 @@ namespace ReincarnationDisplay
         public void Show(ZoneInfo zone, string disabledCause)
         {
             visible = true;
+            SetMode(Mode.Zone);
 
             destinationAge += Time.unscaledDeltaTime;
             if (zone.Zone != describedZone || destinationAge >= DestinationRefreshInterval)
@@ -113,11 +127,50 @@ namespace ReincarnationDisplay
             }
 
             int windowTenths = zone.IsStageStart ? Mathf.Max(0, Mathf.CeilToInt(zone.WindowRemaining * 10f)) : -1;
-            if (windowTenths != shownWindowTenths || disabledCause != shownDisabledCause)
+            if (textDirty || windowTenths != shownWindowTenths || disabledCause != shownDisabledCause)
             {
+                textDirty = false;
                 shownWindowTenths = windowTenths;
                 shownDisabledCause = disabledCause;
                 label.text = BuildText(windowTenths, disabledCause);
+            }
+        }
+
+        // One-line hint that the stage has zoneCount valid zones (not counting the stage-start reroll zone).
+        public void ShowIndicator(int zoneCount, bool pageDisabled)
+        {
+            visible = true;
+            SetMode(Mode.Indicator);
+            if (textDirty || zoneCount != shownIndicatorCount || pageDisabled != shownIndicatorDisabled)
+            {
+                textDirty = false;
+                shownIndicatorCount = zoneCount;
+                shownIndicatorDisabled = pageDisabled;
+                string text = zoneCount == 1 ? "Sacrifice zone on this stage" : zoneCount + " sacrifice zones on this stage";
+                label.text = "<size=90%><color=" + HeaderColor + ">" + text + "</color>"
+                    + (pageDisabled ? " <color=" + DisabledHeaderColor + ">(page disabled)</color>" : "") + "</size>";
+            }
+        }
+
+        // The zone panel is a fixed-width block that wraps; the indicator shrinks to fit its single line.
+        private void SetMode(Mode newMode)
+        {
+            if (newMode == mode)
+            {
+                return;
+            }
+            mode = newMode;
+            textDirty = true;
+            if (mode == Mode.Zone)
+            {
+                fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+                rectTransform.sizeDelta = new Vector2(PanelWidth, rectTransform.sizeDelta.y);
+                label.enableWordWrapping = true;
+            }
+            else
+            {
+                fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+                label.enableWordWrapping = false;
             }
         }
 

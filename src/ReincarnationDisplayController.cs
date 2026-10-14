@@ -61,10 +61,15 @@ namespace ReincarnationDisplay
             }
             if (panel)
             {
+                int availableZones = CountIndicatorZones();
                 if (settings.ShowPanel.Value && activeIndex >= 0)
                 {
                     string disabledCause = pageState == PageState.Disabled ? ZoneScanner.DescribeDisabledCause(body) : null;
                     panel.Show(zones[activeIndex], disabledCause);
+                }
+                else if (settings.ShowZoneIndicator.Value && availableZones > 0)
+                {
+                    panel.ShowIndicator(availableZones, pageState == PageState.Disabled);
                 }
                 else
                 {
@@ -85,6 +90,20 @@ namespace ReincarnationDisplay
             {
                 rings.Clear();
             }
+        }
+
+        // The stage-start reroll zone covers the whole map for its first 30 seconds, so it isn't worth flagging.
+        private int CountIndicatorZones()
+        {
+            int count = 0;
+            foreach (ZoneInfo zone in zones)
+            {
+                if (!zone.IsStageStart)
+                {
+                    count++;
+                }
+            }
+            return count;
         }
 
         private CharacterBody GetTargetBody()

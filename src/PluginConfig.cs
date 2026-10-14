@@ -6,6 +6,7 @@ namespace ReincarnationDisplay
     internal sealed class PluginConfig
     {
         public readonly ConfigEntry<bool> ShowPanel;
+        public readonly ConfigEntry<bool> ShowZoneIndicator;
         public readonly ConfigEntry<float> PanelOffsetY;
         public readonly ConfigEntry<float> PanelScale;
 
@@ -23,6 +24,8 @@ namespace ReincarnationDisplay
         {
             ShowPanel = config.Bind("Panel", "ShowPanel", true,
                 "Show the panel above the N'tormat icon while standing in a valid sacrifice zone.");
+            ShowZoneIndicator = config.Bind("Panel", "ShowZoneIndicator", true,
+                "When not standing in a zone, show a one-line hint above the N'tormat icon if the stage has a sacrifice zone. The stage-start reroll zone doesn't count.");
             PanelOffsetY = config.Bind("Panel", "PanelOffsetY", -6f,
                 "Vertical gap, in UI pixels, between the panel and whatever sits above the N'tormat icon (such as the page selector).");
             PanelScale = config.Bind("Panel", "PanelScale", 1f,
