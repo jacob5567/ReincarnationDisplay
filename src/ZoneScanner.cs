@@ -197,7 +197,8 @@ namespace ReincarnationDisplay
             return remaining;
         }
 
-        // The stage-start zone is the one DLC4SacrificeZoneSpawner spawns from reincarnateCard: a reroll zone.
+        // The stage-start zone is the one DLC4SacrificeZoneSpawner spawns from reincarnateCard: a reroll zone. No other
+        // zone is known to reroll, so any reroll zone is treated as the stage-start one, countdown included.
         private static bool IsStageStartZone(CursedBookSacrificeZone zone)
         {
             if (zone.useRerollSceneInstead)
@@ -255,7 +256,7 @@ namespace ReincarnationDisplay
         private static List<SceneDef> GetRerollCandidates()
         {
             SceneDef current = SceneCatalog.mostRecentSceneDef;
-            if (current == rerollCandidatesScene && Run.instance == rerollCandidatesRun && rerollCandidates.Count > 0)
+            if (current == rerollCandidatesScene && Run.instance == rerollCandidatesRun)
             {
                 return rerollCandidates;
             }

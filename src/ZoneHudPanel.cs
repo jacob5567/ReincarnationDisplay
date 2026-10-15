@@ -19,7 +19,6 @@ namespace ReincarnationDisplay
         private const float PanelWidth = 260f;
         private const float FontSize = 15f;
         private const float FadeDuration = 0.15f;
-        private const float DestinationRefreshInterval = 1f;
         private const float ScreenEdgeMargin = 4f;
 
         private static readonly Color BackgroundColor = new Color(0.07f, 0.03f, 0.1f, 0.85f);
@@ -46,7 +45,6 @@ namespace ReincarnationDisplay
         private int shownIndicatorCount;
         private bool shownIndicatorDisabled;
         private CursedBookSacrificeZone describedZone;
-        private float destinationAge;
         private string outcome;
         private bool keepsStageCount;
         private int shownWindowTenths = int.MinValue;
@@ -117,13 +115,12 @@ namespace ReincarnationDisplay
             visible = true;
             SetMode(Mode.Zone);
 
-            destinationAge += Time.unscaledDeltaTime;
-            if (zone.Zone != describedZone || destinationAge >= DestinationRefreshInterval)
+            // A zone's outcome only depends on run state that holds for the whole stage, and each stage brings new zones.
+            if (zone.Zone != describedZone)
             {
                 describedZone = zone.Zone;
-                destinationAge = 0f;
                 outcome = ZoneScanner.DescribeOutcome(zone.Zone, out keepsStageCount);
-                shownWindowTenths = int.MinValue;
+                textDirty = true;
             }
 
             int windowTenths = zone.IsStageStart ? Mathf.Max(0, Mathf.CeilToInt(zone.WindowRemaining * 10f)) : -1;

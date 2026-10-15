@@ -5,15 +5,20 @@ using UnityEngine;
 
 namespace ReincarnationDisplay
 {
-    // One per HUD. Each frame: is the page held (and usable), which zones are valid, then drive the panel and rings.
+    // One per HUD. Each frame: is the page held (usable or disabled), which zones are valid, then drive the panel and
+    // rings.
     internal sealed class ReincarnationDisplayController : MonoBehaviour
     {
+        // The buff reaches clients a little after the body crosses a zone edge, so only longer disagreements count.
+        private const float BuffMismatchGrace = 0.5f;
+
         private readonly List<ZoneInfo> zones = new List<ZoneInfo>();
         private HUD hud;
         private ZoneHudPanel panel;
         private ZoneWorldRings rings;
         private GameObject cachedBodyObject;
         private CharacterBody cachedBody;
+        private float buffMismatchTime;
         private bool reportedBuffMismatch;
 
         private void Awake()
@@ -120,13 +125,21 @@ namespace ReincarnationDisplay
         // The server's CursedBookReadyForSacrifice buff is the authoritative in-zone signal; log when ours disagrees.
         private void ReportBuffMismatch(CharacterBody body, bool usable, bool inZone)
         {
-            bool mismatch = usable && ZoneScanner.HasReadyBuff(body) != inZone;
-            if (mismatch && !reportedBuffMismatch)
+            bool hasBuff = usable && ZoneScanner.HasReadyBuff(body);
+            if (!usable || hasBuff == inZone)
             {
-                ReincarnationDisplayPlugin.Log.LogWarning(
-                    $"In-zone mismatch: local check says {inZone}, server buff says {!inZone} at {body.corePosition}");
+                buffMismatchTime = 0f;
+                reportedBuffMismatch = false;
+                return;
             }
-            reportedBuffMismatch = mismatch;
+
+            buffMismatchTime += Time.deltaTime;
+            if (buffMismatchTime >= BuffMismatchGrace && !reportedBuffMismatch)
+            {
+                reportedBuffMismatch = true;
+                ReincarnationDisplayPlugin.Log.LogWarning(
+                    $"In-zone mismatch: local check says {inZone}, server buff says {hasBuff} at {body.corePosition}");
+            }
         }
     }
 }

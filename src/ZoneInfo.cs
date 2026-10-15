@@ -17,7 +17,7 @@ namespace ReincarnationDisplay
         Tube,
         Sphere,
         Box,
-        // Inverted zones cover everything outside a shape; the stage-start zone looks like this.
+        // Covers the whole map: inverted zones (everything outside a shape) and huge ones like the stage-start zone.
         Everywhere,
         Unknown,
     }

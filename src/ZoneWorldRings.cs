@@ -34,6 +34,8 @@ namespace ReincarnationDisplay
         // The downward floor search starts this far above the origin, so an origin sitting just under the floor
         // surface still finds it.
         private const float FloorSearchLift = 1f;
+        // A sphere that barely touches its floor level gets no ring rather than a dot.
+        private const float MinCrossSectionRadius = 0.5f;
 
         private static readonly Color RingColor = new Color(0.76f, 0.55f, 1f, 0.45f);
         private static readonly Color InsideRingColor = new Color(0.86f, 0.66f, 1f, 0.95f);
@@ -204,14 +206,18 @@ namespace ReincarnationDisplay
 
             int count = zone.Shape == ZoneShape.Box ? SampleBox(zone) : SampleCircle(zone, viewer);
             ring.ActiveLines = 0;
-            EmitPieces(ring, count);
+            if (count > 0)
+            {
+                EmitPieces(ring, count);
+            }
             for (int i = ring.ActiveLines; i < ring.Lines.Count; i++)
             {
                 ring.Lines[i].gameObject.SetActive(false);
             }
         }
 
-        // Samples the circle where the zone meets its floor level, each dropped onto the floor below it.
+        // Samples the circle where the zone meets its floor level, each dropped onto the floor below it. Returns the
+        // sample count, or 0 if the zone has no edge at floor level.
         private int SampleCircle(ZoneInfo zone, Vector3 viewer)
         {
             float radius = zone.Radius;
@@ -222,6 +228,11 @@ namespace ReincarnationDisplay
                 floorY = TryGetGroundY(zone.Center, Mathf.Max(radius, FloorSearchReach), out float groundY) ? groundY : zone.Center.y;
                 float height = zone.Center.y - floorY;
                 radius = Mathf.Sqrt(Mathf.Max(0f, radius * radius - height * height));
+                if (radius < MinCrossSectionRadius)
+                {
+                    // The sphere doesn't reach down to this floor, so it has no edge on it.
+                    return 0;
+                }
             }
             else
             {
