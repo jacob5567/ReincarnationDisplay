@@ -31,6 +31,9 @@ namespace ReincarnationDisplay
         private const int MinPieceSamples = 3;
         // How far above and below a zone's origin to look for its floor level.
         private const float FloorSearchReach = 20f;
+        // The downward floor search starts this far above the origin, so an origin sitting just under the floor
+        // surface still finds it.
+        private const float FloorSearchLift = 1f;
 
         private static readonly Color RingColor = new Color(0.76f, 0.55f, 1f, 0.45f);
         private static readonly Color InsideRingColor = new Color(0.86f, 0.66f, 1f, 0.95f);
@@ -350,11 +353,13 @@ namespace ReincarnationDisplay
             line.SetPositions(piece.ToArray());
         }
 
-        // Floor under a point, searching within reach above and below it.
+        // Floor under a point, within reach below it. Only if there is none does it look above, for zones whose origin
+        // is buried; looking from above first would land on any roof, bridge or overhang over the zone.
         private static bool TryGetGroundY(Vector3 center, float reach, out float groundY)
         {
-            Vector3 origin = center + Vector3.up * reach;
-            if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, reach * 2f, LayerIndex.world.mask, QueryTriggerInteraction.Ignore))
+            Vector3 below = center + Vector3.up * FloorSearchLift;
+            if (Physics.Raycast(below, Vector3.down, out RaycastHit hit, reach + FloorSearchLift, LayerIndex.world.mask, QueryTriggerInteraction.Ignore)
+                || Physics.Raycast(center + Vector3.up * reach, Vector3.down, out hit, reach - FloorSearchLift, LayerIndex.world.mask, QueryTriggerInteraction.Ignore))
             {
                 groundY = hit.point.y;
                 return true;
