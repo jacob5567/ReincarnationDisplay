@@ -180,13 +180,21 @@ namespace ReincarnationDisplay
         // game time and stops once fired, so it also pauses with the game. Without one, count from stage entry.
         private static float GetWindowRemaining(CursedBookSacrificeZone zone)
         {
+            float sinceEntry = Stage.instance ? Stage.instance.entryTime.timeSince : 0f;
             RoR2.EntityLogic.Timer timer = zone.GetComponent<RoR2.EntityLogic.Timer>();
-            if (timer)
+            if (!timer)
             {
-                return timer.timerRunning ? timer.duration - timer.stopwatch : 0f;
+                return ReincarnationDisplayPlugin.Settings.StageStartWindowSeconds.Value - sinceEntry;
             }
-            float elapsed = Stage.instance ? Stage.instance.entryTime.timeSince : 0f;
-            return ReincarnationDisplayPlugin.Settings.StageStartWindowSeconds.Value - elapsed;
+
+            float remaining = timer.timerRunning ? timer.duration - timer.stopwatch : 0f;
+            // The timer isn't networked. A client's copy starts when the zone spawns there, which can be seconds after
+            // the server's, and only the server's closes the window. Stage entry time is synced, so cap by it.
+            if (!NetworkServer.active && Stage.instance)
+            {
+                remaining = Mathf.Min(remaining, timer.duration - sinceEntry);
+            }
+            return remaining;
         }
 
         // The stage-start zone is the one DLC4SacrificeZoneSpawner spawns from reincarnateCard: a reroll zone.

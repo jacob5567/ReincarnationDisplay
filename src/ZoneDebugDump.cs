@@ -64,6 +64,12 @@ namespace ReincarnationDisplay
                                $"explicitScene={zone.explicitScene?.cachedName} sceneCollection={zone.sceneCollection?.name} " +
                                $"sceneTierCollection={zone.sceneTierCollection?.name} doNotIncrementStageNumber={zone.doNotIncrementStageNumber}");
             builder.AppendLine($"  shape={DescribeShape(zone.zone)}");
+            RoR2.EntityLogic.Timer timer = zone.GetComponent<RoR2.EntityLogic.Timer>();
+            if (timer)
+            {
+                float stageAge = Stage.instance ? Stage.instance.entryTime.timeSince : -1f;
+                builder.AppendLine($"  timer running={timer.timerRunning} stopwatch={timer.stopwatch:0.00}/{timer.duration} stageAge={stageAge:0.00}s");
+            }
             if (Run.instance)
             {
                 string outcome = ZoneScanner.DescribeOutcome(zone, out bool keepsStageCount);
