@@ -4,7 +4,9 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>ReincarnationDisplay</AssemblyName>
     <RootNamespace>ReincarnationDisplay</RootNamespace>
-    <Version>0.1.0</Version>
+    <!-- thunderstore/manifest.json holds the version; the assembly and the plugin attribute both take it from there. -->
+    <ManifestJson>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)thunderstore/manifest.json'))</ManifestJson>
+    <Version>$([System.Text.RegularExpressions.Regex]::Replace($(ManifestJson), '(?s).*"version_number"\s*:\s*"([^"]+)".*', '$1'))</Version>
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
     <!-- Lets the publicized RoR2 reference be used at runtime (IgnoresAccessChecksTo). -->
@@ -33,6 +35,19 @@
     <Reference Include="$(RoR2ManagedDir)/AsyncManagement.dll" Private="false" />
     <Reference Include="RiskOfOptions" HintPath="$(RiskOfOptionsDll)" Private="false" />
   </ItemGroup>
+
+  <!-- Exposes the version to code as PluginVersionInfo.Version, for the BepInPlugin attribute. -->
+  <Target Name="GeneratePluginVersion" BeforeTargets="CoreCompile">
+    <PropertyGroup>
+      <PluginVersionFile>$(IntermediateOutputPath)PluginVersion.g.cs</PluginVersionFile>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(PluginVersionFile)" Overwrite="true" WriteOnlyWhenDifferent="true"
+                      Lines="namespace ReincarnationDisplay { internal static class PluginVersionInfo { public const string Version = &quot;$(Version)&quot;%3B } }" />
+    <ItemGroup>
+      <Compile Include="$(PluginVersionFile)" />
+      <FileWrites Include="$(PluginVersionFile)" />
+    </ItemGroup>
+  </Target>
 
   <!-- Drop the built plugin straight into the r2modman profile for quick testing. -->
   <Target Name="CopyToProfile" AfterTargets="Build" Condition="'$(CopyToProfile)' == 'true' And Exists('$(ProfileDir)/BepInEx/plugins')">

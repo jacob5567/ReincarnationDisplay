@@ -10,7 +10,7 @@ namespace ReincarnationDisplay
     {
         public const string PluginGUID = "sevenstack.ReincarnationDisplay";
         public const string PluginName = "ReincarnationDisplay";
-        public const string PluginVersion = "0.1.0";
+        public const string PluginVersion = PluginVersionInfo.Version;
 
         internal static ManualLogSource Log;
         internal static PluginConfig Settings;
