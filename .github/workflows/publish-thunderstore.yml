@@ -1,0 +1,55 @@
+# Publishes a GitHub release's package zip to Thunderstore.
+#
+# The mod compiles against the local game install, which can't be checked in, so CI doesn't build it. Run ./build.sh,
+# attach dist/ReincarnationDisplay-<version>.zip to a release tagged v<version>, and publishing the release uploads
+# that exact zip. Needs a THUNDERSTORE_TOKEN repository secret (a service account token for the sevenstack team).
+name: Publish to Thunderstore
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to publish, e.g. v1.0.0
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Install Thunderstore CLI
+        run: dotnet tool install --global tcli --version 0.2.4
+
+      - name: Download the release's package
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        run: |
+          version="${TAG#v}"
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "ReincarnationDisplay-$version.zip" --dir dist
+          zip="dist/ReincarnationDisplay-$version.zip"
+          packaged=$(unzip -p "$zip" manifest.json | jq -r .version_number)
+          if [ "$packaged" != "$version" ]; then
+            echo "::error::$zip contains version $packaged, but the tag is $TAG"
+            exit 1
+          fi
+          echo "PACKAGE_ZIP=$zip" >> "$GITHUB_ENV"
+
+      - name: Publish
+        env:
+          TCLI_AUTH_TOKEN: ${{ secrets.THUNDERSTORE_TOKEN }}
+        run: >
+          tcli publish
+          --config-path thunderstore/thunderstore.toml
+          --file "$PACKAGE_ZIP"
+          --token "$TCLI_AUTH_TOKEN"

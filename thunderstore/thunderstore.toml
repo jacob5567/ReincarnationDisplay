@@ -1,0 +1,18 @@
+# Thunderstore CLI (tcli) settings for publishing. The release workflow uploads the zip from the GitHub release, so
+# the package contents, version and dependencies come from that zip's manifest.json; this file only says where it goes.
+[config]
+schemaVersion = "0.0.1"
+
+[package]
+namespace = "sevenstack"
+name = "ReincarnationDisplay"
+description = "Shows where the Reincarnation page's sacrifice zones are, where a sacrifice there will send you, and the stage-start reroll countdown. Client-side."
+websiteUrl = "https://github.com/jacob5567/ReincarnationDisplay"
+containsNsfwContent = false
+
+[publish]
+repository = "https://thunderstore.io"
+communities = ["riskofrain2"]
+
+[publish.categories]
+riskofrain2 = ["mods", "client-side"]

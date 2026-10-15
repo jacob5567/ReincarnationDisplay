@@ -1,9 +1,9 @@
 # Changelog
 
-## 0.1.1
-- In multiplayer, the stage-start countdown no longer runs long for players who joined someone else's game.
-- Rings find the floor below a zone instead of a roof or bridge above it.
-- Zones that barely reach the ground no longer leave a dot.
-
-## 0.1.0
-- Initial release: world rings for valid sacrifice zones, an in-zone panel with the destination, and the stage-start window countdown.
+## 1.0.0
+- First release.
+- World rings mark every valid sacrifice zone along the ground, leaving out stretches over rocks and drops.
+- A hint above the N'tormat icon says when the stage has a sacrifice zone.
+- Standing in a zone shows a panel with where the sacrifice leads (named only when guaranteed), whether the stage count stays the same, and a countdown for the stage-start reroll window.
+- A held page disabled by Hex of Loss is flagged in red.
+- Settings in the config file, or in game with Risk Of Options.

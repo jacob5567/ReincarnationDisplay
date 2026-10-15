@@ -1,6 +1,6 @@
 {
   "name": "ReincarnationDisplay",
-  "version_number": "0.1.1",
+  "version_number": "1.0.0",
   "website_url": "https://github.com/jacob5567/ReincarnationDisplay",
   "description": "Shows where the Reincarnation page's sacrifice zones are, where a sacrifice there will send you, and the stage-start reroll countdown. Client-side.",
   "dependencies": [
