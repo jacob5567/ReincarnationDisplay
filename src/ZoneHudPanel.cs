@@ -236,6 +236,15 @@ namespace ReincarnationDisplay
                     rect.GetWorldCorners(corners);
                     top = Mathf.Max(iconRectTransform.InverseTransformPoint(corners[1]).y,
                         iconRectTransform.InverseTransformPoint(corners[2]).y);
+                    // Text can draw outside its rect: a page's stock count has a zero-height rect at the slot's top
+                    // edge and its digits rise above it.
+                    if (graphic is TMP_Text label && graphic.enabled && label.textInfo != null && label.textInfo.characterCount > 0)
+                    {
+                        Bounds bounds = label.textBounds;
+                        top = Mathf.Max(top,
+                            iconRectTransform.InverseTransformPoint(rect.TransformPoint(new Vector3(bounds.min.x, bounds.max.y))).y,
+                            iconRectTransform.InverseTransformPoint(rect.TransformPoint(new Vector3(bounds.max.x, bounds.max.y))).y);
+                    }
                 }
                 if (masks)
                 {
