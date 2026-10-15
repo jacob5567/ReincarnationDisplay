@@ -36,6 +36,11 @@
     <Reference Include="RiskOfOptions" HintPath="$(RiskOfOptionsDll)" Private="false" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- The mod icon in the Risk Of Options menu. Embedded so it works however the mod was installed. -->
+    <EmbeddedResource Include="thunderstore/icon.png" LogicalName="ReincarnationDisplay.icon.png" />
+  </ItemGroup>
+
   <!-- Exposes the version to code as PluginVersionInfo.Version, for the BepInPlugin attribute. -->
   <Target Name="GeneratePluginVersion" BeforeTargets="CoreCompile">
     <PropertyGroup>

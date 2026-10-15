@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1
+- New icon: the Reincarnation page inside a sacrifice zone ring.
+- The mod's entry in the Risk Of Options settings menu shows the icon.
+
 ## 1.0.0
 - First release.
 - World rings mark every valid sacrifice zone along the ground, leaving out stretches over rocks and drops.
