@@ -15,4 +15,4 @@ repository = "https://thunderstore.io"
 communities = ["riskofrain2"]
 
 [publish.categories]
-riskofrain2 = ["mods", "client-side"]
+riskofrain2 = ["mods", "client-side", "ai-generated"]
