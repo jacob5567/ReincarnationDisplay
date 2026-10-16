@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2
+- The panel no longer covers the count shown above a page in the N'tormat page selector when you hold more than one of it.
+- `PanelOffsetY` now applies only when the page selector is directly below the panel. Above a page count, or above the N'tormat icon when there is no selector, the panel keeps a small fixed gap.
+
 ## 1.0.1
 - New icon: the Reincarnation page inside a sacrifice zone ring.
 - The mod's entry in the Risk Of Options settings menu shows the icon.
