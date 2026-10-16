@@ -27,7 +27,7 @@ namespace ReincarnationDisplay
             ShowZoneIndicator = config.Bind("Panel", "ShowZoneIndicator", true,
                 "When not standing in a zone, show a one-line hint above the N'tormat icon if the stage has a sacrifice zone. The stage-start reroll zone doesn't count.");
             PanelOffsetY = config.Bind("Panel", "PanelOffsetY", -6f,
-                "Vertical gap, in UI pixels, between the panel and whatever sits above the N'tormat icon (such as the page selector).");
+                "Vertical gap, in UI pixels, between the panel and the N'tormat page selector. Applies only when the selector is the highest thing above the icon; otherwise the panel sits a fixed 6 pixels above whatever is there.");
             PanelScale = config.Bind("Panel", "PanelScale", 1f,
                 "Scale multiplier for the panel.");
 

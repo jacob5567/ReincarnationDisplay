@@ -20,6 +20,8 @@ namespace ReincarnationDisplay
         private const float FontSize = 15f;
         private const float FadeDuration = 0.15f;
         private const float ScreenEdgeMargin = 4f;
+        // Gap above a stock count or the bare icon; PanelOffsetY is only for the page selector's art.
+        private const float ContentGap = 6f;
 
         private static readonly Color BackgroundColor = new Color(0.07f, 0.03f, 0.1f, 0.85f);
         private const string HeaderColor = "#C38BFF";
@@ -197,8 +199,10 @@ namespace ReincarnationDisplay
             float target = visible ? 1f : 0f;
             if (visible || canvasGroup.alpha > 0f)
             {
-                float clearance = GetContentTop() - iconRectTransform.rect.yMax;
-                rectTransform.anchoredPosition = new Vector2(0f, clearance + settings.PanelOffsetY.Value);
+                // The offset tunes the gap to the page selector's art, so it only applies when that art is on top.
+                float top = GetContentTop(out bool selectorOnTop);
+                float offset = selectorOnTop ? settings.PanelOffsetY.Value : ContentGap;
+                rectTransform.anchoredPosition = new Vector2(0f, top - iconRectTransform.rect.yMax + offset);
                 KeepOnScreen();
             }
 
@@ -206,26 +210,33 @@ namespace ReincarnationDisplay
         }
 
         // Highest point, in the icon's local space, of anything drawn on or above the icon, such as the scrollable
-        // page selector the N'tormat adds in extraDisplayHolder. The panel sits above it so nothing is covered.
-        private float GetContentTop()
+        // page selector the N'tormat adds in extraDisplayHolder or a page's stock count above it. The panel sits above
+        // it so nothing is covered. selectorOnTop says whether the highest thing is the selector's own art.
+        private float GetContentTop(out bool selectorOnTop)
         {
-            float top = Mathf.Max(iconRectTransform.rect.yMax, MeasureTop(iconRectTransform));
             Transform extraDisplay = icon ? icon.extraDisplayHolder : null;
-            if (extraDisplay && !extraDisplay.IsChildOf(iconRectTransform))
+            float iconTop = iconRectTransform.rect.yMax;
+            float selectorTop = float.NegativeInfinity;
+            float textTop = float.NegativeInfinity;
+            MeasureTop(iconRectTransform, extraDisplay, ref iconTop, ref textTop);
+            if (extraDisplay)
             {
-                top = Mathf.Max(top, MeasureTop(extraDisplay));
+                MeasureTop(extraDisplay, null, ref selectorTop, ref textTop);
             }
+            float top = Mathf.Max(iconTop, Mathf.Max(selectorTop, textTop));
+            selectorOnTop = !float.IsNegativeInfinity(selectorTop) && selectorTop >= top;
             return top;
         }
 
-        // Only visible graphics count, so empty layout containers don't push the panel up. A masked rect stands in
-        // for its children, which are clipped to it (a scroll view's content can extend far past its viewport).
-        private float MeasureTop(Transform node)
+        // Raises artTop to the top of every visible graphic under node (except skip's subtree), and textTop to the top
+        // of any text drawn outside its rect. Only visible graphics count, so empty layout containers don't push the
+        // panel up. A masked rect stands in for its children, which are clipped to it (a scroll view's content can
+        // extend far past its viewport).
+        private void MeasureTop(Transform node, Transform skip, ref float artTop, ref float textTop)
         {
-            float top = float.NegativeInfinity;
-            if (node == rectTransform || !node.gameObject.activeInHierarchy)
+            if (node == rectTransform || node == skip || !node.gameObject.activeInHierarchy)
             {
-                return top;
+                return;
             }
             if (node is RectTransform rect)
             {
@@ -234,28 +245,26 @@ namespace ReincarnationDisplay
                 if (masks || (graphic && graphic.enabled))
                 {
                     rect.GetWorldCorners(corners);
-                    top = Mathf.Max(iconRectTransform.InverseTransformPoint(corners[1]).y,
-                        iconRectTransform.InverseTransformPoint(corners[2]).y);
-                    // Text can draw outside its rect: a page's stock count has a zero-height rect at the slot's top
-                    // edge and its digits rise above it.
+                    artTop = Mathf.Max(artTop, Mathf.Max(iconRectTransform.InverseTransformPoint(corners[1]).y,
+                        iconRectTransform.InverseTransformPoint(corners[2]).y));
+                    // A page's stock count has a zero-height rect at the slot's top edge and its digits rise above it.
                     if (graphic is TMP_Text label && graphic.enabled && label.textInfo != null && label.textInfo.characterCount > 0)
                     {
                         Bounds bounds = label.textBounds;
-                        top = Mathf.Max(top,
+                        textTop = Mathf.Max(textTop, Mathf.Max(
                             iconRectTransform.InverseTransformPoint(rect.TransformPoint(new Vector3(bounds.min.x, bounds.max.y))).y,
-                            iconRectTransform.InverseTransformPoint(rect.TransformPoint(new Vector3(bounds.max.x, bounds.max.y))).y);
+                            iconRectTransform.InverseTransformPoint(rect.TransformPoint(new Vector3(bounds.max.x, bounds.max.y))).y));
                     }
                 }
                 if (masks)
                 {
-                    return top;
+                    return;
                 }
             }
             for (int i = 0; i < node.childCount; i++)
             {
-                top = Mathf.Max(top, MeasureTop(node.GetChild(i)));
+                MeasureTop(node.GetChild(i), skip, ref artTop, ref textTop);
             }
-            return top;
         }
 
         // The icon sits near a screen edge, so slide the panel sideways if it would hang off the canvas.

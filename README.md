@@ -22,7 +22,7 @@ Edit `BepInEx/config/sevenstack.ReincarnationDisplay.cfg`, or use the in-game se
 |---|---|---|
 | `ShowPanel` | true | Show the in-zone panel. |
 | `ShowZoneIndicator` | true | Show the "Sacrifice zone on this stage" hint. |
-| `PanelOffsetY` / `PanelScale` | -6 / 1 | Gap above the page selector, and panel size. |
+| `PanelOffsetY` / `PanelScale` | -6 / 1 | Gap above the page selector (used only when the selector is directly below the panel), and panel size. |
 | `ShowWorldRings` | true | Draw zone rings in the world. |
 | `RingMaxDistance` | 300 | Hide rings further than this, in meters. |
 | `StageStartWindowSeconds` | 30 | Fallback window length, used only if the zone has no timer of its own (normally it does). |
