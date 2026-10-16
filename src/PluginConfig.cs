@@ -11,6 +11,8 @@ namespace ReincarnationDisplay
         public readonly ConfigEntry<float> PanelScale;
 
         public readonly ConfigEntry<bool> ShowWorldRings;
+        public readonly ConfigEntry<bool> ShowZoneSpheres;
+        public readonly ConfigEntry<float> ZoneSphereOpacity;
         public readonly ConfigEntry<float> RingMaxDistance;
 
         public readonly ConfigEntry<float> StageStartWindowSeconds;
@@ -33,6 +35,10 @@ namespace ReincarnationDisplay
 
             ShowWorldRings = config.Bind("World", "ShowWorldRings", true,
                 "Draw rings on the ground marking the edge of each valid sacrifice zone.");
+            ShowZoneSpheres = config.Bind("World", "ShowZoneSpheres", true,
+                "Fill spherical zones with a faint translucent sphere, in addition to the ring on the ground.");
+            ZoneSphereOpacity = config.Bind("World", "ZoneSphereOpacity", 1f,
+                "How solid the zone spheres look. 1 is the default; lower is more transparent, higher is more solid.");
             RingMaxDistance = config.Bind("World", "RingMaxDistance", 300f,
                 "Rings further than this many meters away are hidden.");
 

@@ -1,12 +1,14 @@
 using System.Collections.Generic;
 using RoR2;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.Rendering;
 
 namespace ReincarnationDisplay
 {
     // Outlines that follow the floor along the edge of each valid zone. Where the outline would jump onto a rock or
-    // hang over a drop, that stretch is left out instead of drawing a spike.
+    // hang over a drop, that stretch is left out instead of drawing a spike. Spherical zones also get a sphere drawn
+    // with the teleporter's border material, recolored purple, so their height shows too.
     internal sealed class ZoneWorldRings : MonoBehaviour
     {
         private const float LineWidth = 0.25f;
@@ -39,10 +41,22 @@ namespace ReincarnationDisplay
 
         private static readonly Color RingColor = new Color(0.76f, 0.55f, 1f, 0.45f);
         private static readonly Color InsideRingColor = new Color(0.86f, 0.66f, 1f, 0.95f);
+        // The teleporter's border sphere. Its hue comes from a remap gradient, so recoloring it means swapping that.
+        private const string IndicatorMaterialAddress = "RoR2/Base/Teleporters/matTeleporterRangeIndicator.mat";
+        // The teleporter's own strength is far too opaque for a zone you can see into, so it's scaled down; being
+        // inside brings it back up some. These are what ZoneSphereOpacity 1 means; the setting multiplies both.
+        private const float OutsideAlphaScale = 0.225f;
+        private const float InsideAlphaScale = 0.375f;
+        private static readonly string[] StrengthProperties = { "_AlphaBoost", "_Boost" };
+        // The plain translucent fallback if the game's material can't be loaded.
+        private static readonly Color FallbackSphereColor = new Color(0.76f, 0.55f, 1f, 0.07f);
+        private static readonly Color FallbackInsideSphereColor = new Color(0.86f, 0.66f, 1f, 0.12f);
 
         private sealed class Ring
         {
             public GameObject Root;
+            public GameObject Sphere;
+            public MeshRenderer SphereRenderer;
             // One line per unbroken piece of the outline; only the first ActiveLines are in use.
             public readonly List<LineRenderer> Lines = new List<LineRenderer>();
             public int ActiveLines;
@@ -61,6 +75,14 @@ namespace ReincarnationDisplay
         private readonly bool[] sampleOnFloor = new bool[MaxSamples];
         private readonly List<Vector3> piece = new List<Vector3>();
         private Material material;
+        private Material sphereMaterial;
+        private Material insideSphereMaterial;
+        private Texture2D remapTexture;
+        // The game material's own strengths, which the opacity setting scales from.
+        private readonly float[] baseStrengths = new float[StrengthProperties.Length];
+        private bool usingGameMaterial;
+        private float appliedOpacity = -1f;
+        private Mesh sphereMesh;
 
         public static ZoneWorldRings Create()
         {
@@ -76,6 +98,8 @@ namespace ReincarnationDisplay
                 return;
             }
             material = new Material(template);
+            CreateSphereMaterials(template);
+            sphereMesh = GetSphereMesh();
         }
 
         private void OnDestroy()
@@ -83,6 +107,123 @@ namespace ReincarnationDisplay
             if (material)
             {
                 Destroy(material);
+            }
+            if (sphereMaterial)
+            {
+                Destroy(sphereMaterial);
+            }
+            if (insideSphereMaterial)
+            {
+                Destroy(insideSphereMaterial);
+            }
+            if (remapTexture)
+            {
+                Destroy(remapTexture);
+            }
+        }
+
+        // Copies of the teleporter's border material in purple, one stronger for when the player is inside. Falls back
+        // to a plain translucent material if the game's isn't available.
+        private void CreateSphereMaterials(Material fallbackTemplate)
+        {
+            Material indicator = null;
+            try
+            {
+                indicator = Addressables.LoadAssetAsync<Material>(IndicatorMaterialAddress).WaitForCompletion();
+            }
+            catch (System.Exception ex)
+            {
+                ReincarnationDisplayPlugin.Log.LogWarning("Couldn't load the teleporter border material: " + ex.Message);
+            }
+            usingGameMaterial = indicator;
+            if (!indicator)
+            {
+                sphereMaterial = new Material(fallbackTemplate) { color = FallbackSphereColor };
+                insideSphereMaterial = new Material(fallbackTemplate) { color = FallbackInsideSphereColor };
+                return;
+            }
+
+            remapTexture = CreatePurpleRemap();
+            sphereMaterial = new Material(indicator);
+            Recolor(sphereMaterial);
+            insideSphereMaterial = new Material(sphereMaterial);
+            for (int i = 0; i < StrengthProperties.Length; i++)
+            {
+                baseStrengths[i] = indicator.HasProperty(StrengthProperties[i]) ? indicator.GetFloat(StrengthProperties[i]) : 0f;
+            }
+        }
+
+        // Applies the ZoneSphereOpacity setting to both sphere materials when it changes.
+        private void ApplySphereOpacity(float opacity)
+        {
+            if (opacity == appliedOpacity)
+            {
+                return;
+            }
+            appliedOpacity = opacity;
+            if (!usingGameMaterial)
+            {
+                sphereMaterial.color = Fade(FallbackSphereColor, opacity);
+                insideSphereMaterial.color = Fade(FallbackInsideSphereColor, opacity);
+                return;
+            }
+            for (int i = 0; i < StrengthProperties.Length; i++)
+            {
+                if (sphereMaterial.HasProperty(StrengthProperties[i]))
+                {
+                    sphereMaterial.SetFloat(StrengthProperties[i], baseStrengths[i] * OutsideAlphaScale * opacity);
+                    insideSphereMaterial.SetFloat(StrengthProperties[i], baseStrengths[i] * InsideAlphaScale * opacity);
+                }
+            }
+        }
+
+        private static Color Fade(Color color, float opacity)
+        {
+            color.a = Mathf.Clamp01(color.a * opacity);
+            return color;
+        }
+
+        private void Recolor(Material target)
+        {
+            if (target.HasProperty("_RemapTex"))
+            {
+                target.SetTexture("_RemapTex", remapTexture);
+            }
+            if (target.HasProperty("_RimColor"))
+            {
+                target.SetColor("_RimColor", new Color(0.76f, 0.55f, 1f, 0f));
+            }
+        }
+
+        // Dark violet through the ring purple to near white, to replace the border's orange gradient.
+        private static Texture2D CreatePurpleRemap()
+        {
+            const int width = 256;
+            Texture2D texture = new Texture2D(width, 1, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
+            Color dark = new Color(0.25f, 0.10f, 0.45f, 1f);
+            Color mid = new Color(0.76f, 0.55f, 1f, 1f);
+            Color light = new Color(1f, 0.92f, 1f, 1f);
+            for (int i = 0; i < width; i++)
+            {
+                float f = i / (float)(width - 1);
+                texture.SetPixel(i, 0, f < 0.6f ? Color.Lerp(dark, mid, f / 0.6f) : Color.Lerp(mid, light, (f - 0.6f) / 0.4f));
+            }
+            texture.Apply();
+            return texture;
+        }
+
+        // Unity's built-in unit sphere (diameter 1). The probe's collider isn't wanted, so the probe is thrown away
+        // and only the shared mesh is kept.
+        private static Mesh GetSphereMesh()
+        {
+            GameObject probe = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            try
+            {
+                return probe.GetComponent<MeshFilter>().sharedMesh;
+            }
+            finally
+            {
+                DestroyImmediate(probe);
             }
         }
 
@@ -121,6 +262,7 @@ namespace ReincarnationDisplay
             {
                 return;
             }
+            ApplySphereOpacity(ReincarnationDisplayPlugin.Settings.ZoneSphereOpacity.Value);
             foreach (Ring ring in rings.Values)
             {
                 ring.Seen = false;
@@ -156,6 +298,10 @@ namespace ReincarnationDisplay
                     line.startColor = color;
                     line.endColor = color;
                     line.widthMultiplier = width;
+                }
+                if (ring.Sphere.activeSelf)
+                {
+                    ring.SphereRenderer.sharedMaterial = zone.PlayerInside ? insideSphereMaterial : sphereMaterial;
                 }
             }
 
@@ -203,6 +349,14 @@ namespace ReincarnationDisplay
             ring.Center = zone.Center;
             ring.Radius = zone.Radius;
             ring.HalfExtents = zone.HalfExtents;
+
+            bool showSphere = zone.Shape == ZoneShape.Sphere && ReincarnationDisplayPlugin.Settings.ShowZoneSpheres.Value;
+            ring.Sphere.SetActive(showSphere);
+            if (showSphere)
+            {
+                ring.Sphere.transform.position = zone.Center;
+                ring.Sphere.transform.localScale = Vector3.one * (zone.Radius * 2f);
+            }
 
             int count = zone.Shape == ZoneShape.Box ? SampleBox(zone) : SampleCircle(zone, viewer);
             ring.ActiveLines = 0;
@@ -391,7 +545,16 @@ namespace ReincarnationDisplay
 
             GameObject root = new GameObject("Ring");
             root.transform.SetParent(transform, false);
-            return new Ring { Root = root };
+
+            GameObject sphere = new GameObject("Sphere", typeof(MeshFilter), typeof(MeshRenderer));
+            sphere.transform.SetParent(root.transform, false);
+            sphere.GetComponent<MeshFilter>().sharedMesh = sphereMesh;
+            MeshRenderer renderer = sphere.GetComponent<MeshRenderer>();
+            renderer.sharedMaterial = sphereMaterial;
+            renderer.shadowCastingMode = ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+            sphere.SetActive(false);
+            return new Ring { Root = root, Sphere = sphere, SphereRenderer = renderer };
         }
 
         private LineRenderer CreateLine(Transform parent)

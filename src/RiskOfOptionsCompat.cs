@@ -35,6 +35,9 @@ namespace ReincarnationDisplay
                 new StepSliderConfig { min = 0.5f, max = 2f, increment = 0.05f, FormatString = "{0:0.00}x" }));
 
             ModSettingsManager.AddOption(new CheckBoxOption(settings.ShowWorldRings));
+            ModSettingsManager.AddOption(new CheckBoxOption(settings.ShowZoneSpheres));
+            ModSettingsManager.AddOption(new StepSliderOption(settings.ZoneSphereOpacity,
+                new StepSliderConfig { min = 0f, max = 3f, increment = 0.05f, FormatString = "{0:0.00}x" }));
             ModSettingsManager.AddOption(new StepSliderOption(settings.RingMaxDistance,
                 new StepSliderConfig { min = 25f, max = 1000f, increment = 25f, FormatString = "{0:0}m" }));
 
