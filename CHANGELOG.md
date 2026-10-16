@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.0
+- Spherical zones are now also drawn as a translucent purple sphere, using the same effect as the teleporter's border, so you can see how high a zone reaches as well as where it sits on the ground.
+- New settings: `ShowZoneSpheres` turns the spheres off, and `ZoneSphereOpacity` (a slider in Risk Of Options, default 1) sets how solid they look.
+
 ## 1.0.2
 - The panel no longer covers the count shown above a page in the N'tormat page selector when you hold more than one of it.
 - `PanelOffsetY` now applies only when the page selector is directly below the panel. Above a page count, or above the N'tormat icon when there is no selector, the panel keeps a small fixed gap.
