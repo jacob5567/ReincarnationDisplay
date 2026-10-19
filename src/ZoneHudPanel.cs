@@ -23,11 +23,11 @@ namespace ReincarnationDisplay
         // Gap above a stock count or the bare icon; PanelOffsetY is only for the page selector's art.
         private const float ContentGap = 6f;
 
-        private static readonly Color BackgroundColor = new Color(0.07f, 0.03f, 0.1f, 0.85f);
-        private const string HeaderColor = "#C38BFF";
+        private static readonly Color BackgroundColor = new Color(0.02f, 0.05f, 0.1f, 0.85f);
+        private const string HeaderColor = "#027AFF";
         private const string DisabledHeaderColor = "#FF5A5A";
         private const string NoteColor = "#A0A0A0";
-        private const string WindowColor = "#E6D9FF";
+        private const string WindowColor = "#D9E9FF";
         private const string WindowWarningColor = "#FFC24D";
         private const string WindowCriticalColor = "#FF5A5A";
 

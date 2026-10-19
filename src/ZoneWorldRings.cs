@@ -8,7 +8,7 @@ namespace ReincarnationDisplay
 {
     // Outlines that follow the floor along the edge of each valid zone. Where the outline would jump onto a rock or
     // hang over a drop, that stretch is left out instead of drawing a spike. Spherical zones also get a sphere drawn
-    // with the teleporter's border material, recolored purple, so their height shows too.
+    // with the teleporter's border material, recolored blue, so their height shows too.
     internal sealed class ZoneWorldRings : MonoBehaviour
     {
         private const float LineWidth = 0.25f;
@@ -39,8 +39,8 @@ namespace ReincarnationDisplay
         // A sphere that barely touches its floor level gets no ring rather than a dot.
         private const float MinCrossSectionRadius = 0.5f;
 
-        private static readonly Color RingColor = new Color(0.76f, 0.55f, 1f, 0.45f);
-        private static readonly Color InsideRingColor = new Color(0.86f, 0.66f, 1f, 0.95f);
+        private static readonly Color RingColor = new Color(0.01f, 0.48f, 1f, 0.45f);
+        private static readonly Color InsideRingColor = new Color(0.2f, 0.62f, 1f, 0.95f);
         // The teleporter's border sphere. Its hue comes from a remap gradient, so recoloring it means swapping that.
         private const string IndicatorMaterialAddress = "RoR2/Base/Teleporters/matTeleporterRangeIndicator.mat";
         // The teleporter's own strength is far too opaque for a zone you can see into, so it's scaled down; being
@@ -49,8 +49,8 @@ namespace ReincarnationDisplay
         private const float InsideAlphaScale = 0.375f;
         private static readonly string[] StrengthProperties = { "_AlphaBoost", "_Boost" };
         // The plain translucent fallback if the game's material can't be loaded.
-        private static readonly Color FallbackSphereColor = new Color(0.76f, 0.55f, 1f, 0.07f);
-        private static readonly Color FallbackInsideSphereColor = new Color(0.86f, 0.66f, 1f, 0.12f);
+        private static readonly Color FallbackSphereColor = new Color(0.01f, 0.48f, 1f, 0.07f);
+        private static readonly Color FallbackInsideSphereColor = new Color(0.2f, 0.62f, 1f, 0.12f);
 
         private sealed class Ring
         {
@@ -122,7 +122,7 @@ namespace ReincarnationDisplay
             }
         }
 
-        // Copies of the teleporter's border material in purple, one stronger for when the player is inside. Falls back
+        // Copies of the teleporter's border material in blue, one stronger for when the player is inside. Falls back
         // to a plain translucent material if the game's isn't available.
         private void CreateSphereMaterials(Material fallbackTemplate)
         {
@@ -143,7 +143,7 @@ namespace ReincarnationDisplay
                 return;
             }
 
-            remapTexture = CreatePurpleRemap();
+            remapTexture = CreateBlueRemap();
             sphereMaterial = new Material(indicator);
             Recolor(sphereMaterial);
             insideSphereMaterial = new Material(sphereMaterial);
@@ -191,18 +191,18 @@ namespace ReincarnationDisplay
             }
             if (target.HasProperty("_RimColor"))
             {
-                target.SetColor("_RimColor", new Color(0.76f, 0.55f, 1f, 0f));
+                target.SetColor("_RimColor", new Color(0.01f, 0.48f, 1f, 0f));
             }
         }
 
-        // Dark violet through the ring purple to near white, to replace the border's orange gradient.
-        private static Texture2D CreatePurpleRemap()
+        // Dark blue through the ring blue to near white, to replace the border's orange gradient.
+        private static Texture2D CreateBlueRemap()
         {
             const int width = 256;
             Texture2D texture = new Texture2D(width, 1, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
-            Color dark = new Color(0.25f, 0.10f, 0.45f, 1f);
-            Color mid = new Color(0.76f, 0.55f, 1f, 1f);
-            Color light = new Color(1f, 0.92f, 1f, 1f);
+            Color dark = new Color(0.01f, 0.15f, 0.45f, 1f);
+            Color mid = new Color(0.01f, 0.48f, 1f, 1f);
+            Color light = new Color(0.92f, 0.96f, 1f, 1f);
             for (int i = 0; i < width; i++)
             {
                 float f = i / (float)(width - 1);
