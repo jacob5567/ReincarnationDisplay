@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.1
+- Zone rings, zone spheres and the zone panel are now blue instead of purple.
+
 ## 1.1.0
 - Spherical zones are now also drawn as a translucent purple sphere, using the same effect as the teleporter's border, so you can see how high a zone reaches as well as where it sits on the ground.
 - New settings: `ShowZoneSpheres` turns the spheres off, and `ZoneSphereOpacity` (a slider in Risk Of Options, default 1) sets how solid they look.
