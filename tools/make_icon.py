@@ -11,14 +11,15 @@ W = SIZE * SS
 
 out = sys.argv[1] if len(sys.argv) > 1 else "thunderstore/icon.png"
 
-BACKGROUND = (14, 8, 22, 255)
-RING = (186, 120, 255)
-RING_CORE = (226, 196, 255)
-RING_INNER = (150, 90, 220)
+BACKGROUND = (6, 10, 22, 255)
+# The zone rings' blue in the game (#027AFF).
+RING = (2, 122, 255)
+RING_CORE = (150, 200, 255)
+RING_INNER = (2, 90, 200)
 PIN = (255, 200, 90)
 PAGE = (228, 210, 192)
 PAGE_EDGE = (196, 170, 156)
-FOLD = (70, 52, 92)
+FOLD = (44, 58, 96)
 INK = (38, 28, 34)
 OUTLINE = (70, 150, 255)
 
