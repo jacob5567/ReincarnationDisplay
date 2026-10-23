@@ -36,6 +36,7 @@ Edit `BepInEx/config/sevenstack.ReincarnationDisplay.cfg`, or use the in-game se
 
 - The panel names a stage only when the destination is guaranteed. When the game picks it, for example after a soul-binding trial or a Winnowing trial, the panel just says *Continues to the next stage*, so it never reveals anything you wouldn't otherwise know.
 - The stage-start reroll shows *Reroll stage N*.
+- With [RiskUI](https://thunderstore.io/package/Bubbet/RiskUI/) installed and enabled, the zone panel uses RiskUI's font and moves up so it doesn't cover the interact prompt, which RiskUI places beside the N'tormat. If you turn RiskUI on or off, the change applies from the next stage, the same as for RiskUI's own HUD.
 
 ## Building
 

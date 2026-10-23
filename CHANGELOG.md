@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0
+- Works with [RiskUI](https://thunderstore.io/package/Bubbet/RiskUI/). With RiskUI installed and enabled, the zone panel uses RiskUI's font and moves up so it doesn't cover the interact prompt, which RiskUI places beside the N'tormat.
+- The icon is now blue, to match the zone rings and panel.
+
 ## 1.1.1
 - Zone rings, zone spheres and the zone panel are now blue instead of purple, to match the Reincarnation page and N'tormat.
 
