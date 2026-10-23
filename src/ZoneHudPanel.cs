@@ -33,6 +33,8 @@ namespace ReincarnationDisplay
 
         private RectTransform rectTransform;
         private RectTransform canvasRectTransform;
+        // A HUD element the panel must not cover, or null.
+        private RectTransform obstacle;
         private KeyItemIcon icon;
         private RectTransform iconRectTransform;
         private CanvasGroup canvasGroup;
@@ -40,6 +42,7 @@ namespace ReincarnationDisplay
         private TextMeshProUGUI label;
         private readonly Vector3[] corners = new Vector3[4];
         private readonly Vector3[] canvasCorners = new Vector3[4];
+        private readonly Vector3[] obstacleCorners = new Vector3[4];
 
         private bool visible;
         private Mode mode = Mode.Zone;
@@ -52,7 +55,7 @@ namespace ReincarnationDisplay
         private int shownWindowTenths = int.MinValue;
         private string shownDisabledCause;
 
-        public static ZoneHudPanel Create(KeyItemIcon icon)
+        public static ZoneHudPanel Create(HUD hud, KeyItemIcon icon)
         {
             GameObject root = new GameObject("ReincarnationZonePanel", typeof(RectTransform));
             root.layer = icon.gameObject.layer;
@@ -103,6 +106,12 @@ namespace ReincarnationDisplay
             panel.iconRectTransform = (RectTransform)icon.transform;
             Canvas canvas = icon.GetComponentInParent<Canvas>();
             panel.canvasRectTransform = canvas ? (RectTransform)canvas.rootCanvas.transform : null;
+            if (RiskUICompat.IsRiskUIHud(hud))
+            {
+                RiskUICompat.ApplyFont(hud, text);
+                // RiskUI puts the key item next to the skills, under or beside the interact prompt's box.
+                panel.obstacle = hud.contextManager ? (RectTransform)hud.contextManager.transform : null;
+            }
             return panel;
         }
 
@@ -204,6 +213,7 @@ namespace ReincarnationDisplay
                 float offset = selectorOnTop ? settings.PanelOffsetY.Value : ContentGap;
                 rectTransform.anchoredPosition = new Vector2(0f, top - iconRectTransform.rect.yMax + offset);
                 KeepOnScreen();
+                ClearObstacle();
             }
 
             canvasGroup.alpha = Mathf.MoveTowards(canvasGroup.alpha, target, Time.unscaledDeltaTime / FadeDuration);
@@ -264,6 +274,25 @@ namespace ReincarnationDisplay
             for (int i = 0; i < node.childCount; i++)
             {
                 MeasureTop(node.GetChild(i), skip, ref artTop, ref textTop);
+            }
+        }
+
+        // Lifts the panel above the obstacle's box if the two overlap. The interact prompt's box keeps its size while
+        // the prompt comes and goes, so the panel doesn't jump as the player walks past interactables.
+        private void ClearObstacle()
+        {
+            if (!obstacle || !obstacle.gameObject.activeInHierarchy || !(rectTransform.parent is RectTransform parent))
+            {
+                return;
+            }
+            rectTransform.GetWorldCorners(corners);
+            obstacle.GetWorldCorners(obstacleCorners);
+            bool overlaps = corners[0].x < obstacleCorners[2].x && obstacleCorners[0].x < corners[2].x
+                && corners[0].y < obstacleCorners[1].y && obstacleCorners[0].y < corners[1].y;
+            if (overlaps)
+            {
+                float lift = parent.InverseTransformPoint(obstacleCorners[1]).y - parent.InverseTransformPoint(corners[0]).y;
+                rectTransform.anchoredPosition += new Vector2(0f, lift + ContentGap);
             }
         }
 

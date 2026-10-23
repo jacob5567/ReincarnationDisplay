@@ -62,7 +62,7 @@ namespace ReincarnationDisplay
 
             if (!panel && hud.keyItemIcon)
             {
-                panel = ZoneHudPanel.Create(hud.keyItemIcon);
+                panel = ZoneHudPanel.Create(hud, hud.keyItemIcon);
             }
             if (panel)
             {
